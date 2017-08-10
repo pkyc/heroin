@@ -6,32 +6,34 @@ import pymongo
 from pymongo import MongoClient
 from bs4 import BeautifulSoup
 
-link = 'http://www.hkjc.com/english/racing/selecthorsebychar.asp?ordertype=A'
-atoz = list(string.uppercase)
-allhor = ([])
 
-
-def hor(all):
+def readhor():
     client = MongoClient('localhost', 27017)
     db = client.hname   
     horse = db.horse
-    for a in all:
-        link = 'http://www.hkjc.com/english/racing/' + a[0].encode("utf-8")
-        name = a[1].encode("utf-8")
-        #print(link,name)
-        result = db.horse.insert_one({"name": name, "link": link})
+    cursor = horse.find({})
+    counter = 0
+    for a in cursor:
+        link = a["link"].encode("utf-8")
+        name = a["name"].encode("utf-8")
+        if counter > 4:
+            break
+        gethor(name,link)
+        counter += 1
     return
 
-
-for a in atoz:
-    #-- grep all horse name from A to Z, store in allhor
-    link = 'http://www.hkjc.com/english/racing/selecthorsebychar.asp?ordertype='+a
-    htmlfile = urllib2.urlopen(link)
+def gethor(n,l):
+    print(n,l)
+    htmlfile = urllib2.urlopen(l)
     htmltext = htmlfile.read()
     soup = BeautifulSoup(htmltext,'html.parser')
-    for each in  soup.find_all(href=re.compile("^horse.asp")):
-        allhor.append([each.get('href'),each.contents[0]])
+    table = soup.findChildren("table", {"class": "bigborder"})[0]
+    header = table.findChildren("tr", {"bgcolor": "#CEE7FF"})
+    print(header)
+    tds = table.findChildren("td")
+    for a in tds:
+        print(a.text.strip())
+    #print(tds.text.encode("utf-8").strip())
 
-hor(allhor)
-print len(allhor)
+readhor()
 
