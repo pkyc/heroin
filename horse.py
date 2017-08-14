@@ -3,6 +3,7 @@ import urllib2
 import re
 import string
 import pymongo
+import json
 from pymongo import MongoClient
 from bs4 import BeautifulSoup
 
@@ -16,7 +17,7 @@ def readhor():
     for a in cursor:
         link = a["link"].encode("utf-8")
         name = a["name"].encode("utf-8")
-        if counter > 4:
+        if counter > 1:
             break
         gethor(name,link)
         counter += 1
@@ -24,16 +25,38 @@ def readhor():
 
 def gethor(n,l):
     print(n,l)
+    hjson = "{'NAME' : '" + n + "', 'LINK': '" + l + "'}"
     htmlfile = urllib2.urlopen(l)
     htmltext = htmlfile.read()
     soup = BeautifulSoup(htmltext,'html.parser')
-    table = soup.findChildren("table", {"class": "bigborder"})[0]
-    header = table.findChildren("tr", {"bgcolor": "#CEE7FF"})
-    print(header)
-    tds = table.findChildren("td")
-    for a in tds:
-        print(a.text.strip())
-    #print(tds.text.encode("utf-8").strip())
+
+    table = soup.find("table", {"class": "bigborder"})
+
+    header = table.find_all("td", {"class": "hsubheader"})
+
+    # horse in list []
+    horsedict = []
+    for h in header:
+        horsedict.append(h.text.strip().encode("utf-8"))
+
+    # td in list []
+    tddict = []
+    tds = table.find_all("td", {"class": "htable_eng_text"})
+    for td in tds:
+        tddict.append(td.text.strip().encode("utf-8"))
+    tddict.remove("(No Running Records in this season)")
+    print(len(tddict))
+
+    for i in range(len(tddict)):
+	if i>18:
+           j = i%19
+	   #print(">18", j)
+    	   #print(horsedict[(j)])
+        else:
+           j = i
+        print(horsedict[j]+":"+tddict[i])
+        #print("tddict")
+
 
 readhor()
 
