@@ -24,6 +24,7 @@ def readhor():
     return
 
 def gethor(n,l):
+    file = open('output.out', 'w')
     print(n,l)
     hjson = "{'NAME' : '" + n + "', 'LINK': '" + l + "'}"
     htmlfile = urllib2.urlopen(l)
@@ -42,20 +43,23 @@ def gethor(n,l):
     # td in list []
     tddict = []
     tds = table.find_all("td", {"class": "htable_eng_text"})
-    for td in tds:
-        tddict.append(td.text.strip().encode("utf-8"))
-    tddict.remove("(No Running Records in this season)")
-    print(len(tddict))
+    for td in tds: 
+        td = td.text.strip().encode("utf-8")
+        if td == "(No Running Records in this season)":
+           pass
+        elif td == "":
+           pass
+        else:
+           file.write(td+"--end\n")
+           tddict.append(td)
 
+    print(len(tddict))
     for i in range(len(tddict)):
 	if i>18:
            j = i%19
-	   #print(">18", j)
-    	   #print(horsedict[(j)])
         else:
            j = i
         print(horsedict[j]+":"+tddict[i])
-        #print("tddict")
 
 
 readhor()
