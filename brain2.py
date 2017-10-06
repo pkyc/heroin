@@ -8,6 +8,7 @@
 #  	call cal2h
 # 			read 2h.csv
 #	write result <date>-bet.csv
+#  rdate e.g. 2017-10-1 2018-1-11
 
 
 import sys
@@ -21,10 +22,9 @@ db = client.heroin2
 
 
 def s1(rdate):
-	if (db.game.find_one({"date" : rdate}) != None ): 
+	if (db[rdate].find_one({"date" : rdate}) != None ): 
 		print "found"
 		return
-	array = {}
 	game = 1	
 	y,m,d = rdate.split('-')
 	filename =  '%s-%s-odd.csv' % (d,str(int(m)))
@@ -84,7 +84,7 @@ def cal_speed(name):
 
 
 def insert(rdate,game,num,name,curr,life,win,avgspeed):
-	db.game.insert_one(
+	db[rdate].insert_one(
 		{
 		"date": rdate,
 		"rac" : game,
@@ -101,19 +101,20 @@ def insert(rdate,game,num,name,curr,life,win,avgspeed):
 
 def s2(rdate):
 	for x in range(1,13):
-		cursor = db.game.find({'rac': x},{'_id':0})
+		cursor = db[rdate].find({'rac': x},{'_id':0})
 		norm = json_normalize(list(cursor),'hor',['rac'])
 		df = pd.DataFrame(norm)
-		df['curr_rank'] = df['curr'].rank(ascending=True)
-		df['life_rank'] = df['life'].rank(ascending=True)
-		df['avgs_rank'] = df['avgs'].rank(ascending=False)
-		df['wins_rank'] = df['win'].rank(ascending=False)
+		df['curr_rank'] = df['curr'].astype(int).rank(ascending=True)
+		df['life_rank'] = df['life'].astype(int).rank(ascending=True)
+		df['avgs_rank'] = df['avgs'].rank(ascending=True)
+		df['wins_rank'] = df['win'].rank(ascending=True)
 		df['weighted'] = ((df['curr_rank']*40 + df['life_rank']*10 + df['avgs_rank']*40 + df['wins_rank']*10)/100).rank(ascending=True)
 		print df.loc[:,['rac','num','name','weighted']].sort_values('weighted')
+		#print df.loc[:,['weighted','curr','curr_rank','life','life_rank']].sort_values('weighted')
 
 
 def main():
-	rdate = "2017-10-1"
+	rdate = "2017-10-5"
 	s1(rdate)
 	s2(rdate)
 
