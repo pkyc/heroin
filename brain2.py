@@ -17,6 +17,10 @@ import pandas as pd
 from pymongo import MongoClient
 from pandas.io.json import json_normalize
 
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
 client = MongoClient('localhost:27017')
 db = client.heroin2
 
@@ -78,6 +82,8 @@ def cal_speed(name):
 						counter += 1
 				else:
 					pass
+			elif counter > 0 and counter < 4:
+				return(reduce(lambda x, y: x+y, speed)/len(speed))
 			else:
 				pass
 
@@ -104,17 +110,22 @@ def s2(rdate):
 		cursor = db[rdate].find({'rac': x},{'_id':0})
 		norm = json_normalize(list(cursor),'hor',['rac'])
 		df = pd.DataFrame(norm)
+		df['num_int'] = df['num'].astype(int)
 		df['curr_rank'] = df['curr'].astype(int).rank(ascending=True)
 		df['life_rank'] = df['life'].astype(int).rank(ascending=True)
 		df['avgs_rank'] = df['avgs'].rank(ascending=True)
 		df['wins_rank'] = df['win'].rank(ascending=True)
-		df['weighted'] = ((df['curr_rank']*40 + df['life_rank']*10 + df['avgs_rank']*40 + df['wins_rank']*10)/100).rank(ascending=True)
-		print df.loc[:,['rac','num','name','weighted']].sort_values('weighted')
-		#print df.loc[:,['weighted','curr','curr_rank','life','life_rank']].sort_values('weighted')
+		df['A'] = ((df['curr_rank']*60 + df['life_rank']*25 + df['avgs_rank']*10 + df['wins_rank']*5)/100).rank(ascending=True)
+		df['B'] = ((df['curr_rank']*60 + df['life_rank']*10 + df['avgs_rank']*5 + df['wins_rank']*25)/100).rank(ascending=True)
+		df['C'] = ((df['curr_rank']*5 + df['life_rank']*10 + df['avgs_rank']*25 + df['wins_rank']*60)/100).rank(ascending=True)
+		df['D'] = ((df['curr_rank']*10 + df['life_rank']*5 + df['avgs_rank']*60 + df['wins_rank']*25)/100).rank(ascending=True)
+		df['E'] = ((df['curr_rank']*25 + df['life_rank']*5 + df['avgs_rank']*60 + df['wins_rank']*10)/100).rank(ascending=True)
+		df.loc[:,['rac','num_int','name','A','B','C','D','E']].sort_values('num_int').to_csv(path_or_buf='a.csv',mode='a',sep=';')
+		#print df
 
 
 def main():
-	rdate = "2017-10-5"
+	rdate = "2017-10-22"
 	s1(rdate)
 	s2(rdate)
 
