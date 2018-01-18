@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":1,"key":{"_id":1},"name":"_id_","ns":"heroin2.r3"},{"v":1,"unique":true,"key":{"Date":1.0,"Course":1.0,"Race No":1.0,"Horse":1.0,"Jockey":1.0,"Trainer":1.0},"name":"Date_1_Course_1_Race No_1_Horse_1_Jockey_1_Trainer_1","ns":"heroin2.r3"}]}
